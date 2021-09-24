@@ -2,11 +2,19 @@ package tictactoe;
 
 import javax.swing.*;
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Random;
 
 public class TicTacToe extends JFrame {
 
-    public static boolean turn = true;
+    public static boolean gameStarted = false;
+    public static String sign = "X";
+//    public static boolean playerOneIsHuman = true;
+//    public static boolean playerTwoIsHuman = true;
+    public static JButton buttonPlayer1;
+    public static JButton buttonStartReset;
+    public static JButton buttonPlayer2;
     public static JLabel labelStatus;
     public static JButton buttonA3;
     public static JButton buttonA2;
@@ -25,6 +33,51 @@ public class TicTacToe extends JFrame {
         setLocationRelativeTo(null);
         setVisible(true);
         setTitle("Tic Tac Toe");
+
+        JPanel topPanel = new JPanel();
+
+        GridLayout topPanelLayout = new GridLayout(1, 3);
+        topPanel.setLayout(topPanelLayout);
+
+        buttonPlayer1 = new JButton("Human");
+        buttonPlayer1.setName("ButtonPlayer1");
+        topPanel.add(buttonPlayer1);
+        buttonPlayer1.addActionListener(e -> {
+            if (buttonPlayer1.getText().equals("Human")) {
+                buttonPlayer1.setText("Computer");
+            } else {
+                buttonPlayer1.setText("Robot");
+            }
+        });
+
+        buttonStartReset  = new JButton("Start");
+        buttonStartReset.setName("ButtonStartReset");
+        topPanel.add(buttonStartReset);
+        buttonStartReset.addActionListener(e -> {
+            if (buttonStartReset.getText().equals("Start")) {
+                buttonStartReset.setText("Reset");
+                gameStarted = !gameStarted;
+                buttonPlayer1.setEnabled(false);
+                buttonPlayer2.setEnabled(false);
+                labelStatus.setText("Game in progress");
+            } else {
+                resetGame();
+            }
+        });
+
+        buttonPlayer2 = new JButton("Human");
+        buttonPlayer2.setName("ButtonPlayer2");
+        topPanel.add(buttonPlayer2);
+        buttonPlayer2.addActionListener(e -> {
+            if (buttonPlayer2.getText().equals("Human")) {
+                buttonPlayer2.setText("Computer");
+            } else {
+                buttonPlayer2.setText("Robot");
+            }
+        });
+
+        add(topPanel);
+        add(topPanel, BorderLayout.NORTH);
 
         JPanel grid = new JPanel();
         GridLayout layout = new GridLayout(3, 3);
@@ -119,13 +172,6 @@ public class TicTacToe extends JFrame {
         labelStatus.setName("LabelStatus");
         infoPanel.add(labelStatus);
 
-        JButton buttonReset  = new JButton("Reset");
-        buttonReset.setName("ButtonReset");
-        infoPanel.add(buttonReset);
-        buttonReset.addActionListener(e -> {
-            resetGame();
-        });
-
         add(infoPanel, BorderLayout.SOUTH);
 
         setVisible(true);
@@ -135,13 +181,15 @@ public class TicTacToe extends JFrame {
 
     public static void makeTurn(JButton button) {
 
-        if (turn && !button.getText().matches("X|O")) {
+        if (!gameStarted) return;
+
+        if (sign.equals("X") && !button.getText().matches("X|O")) {
             button.setText("X");
-            turn = !turn;
+            sign = "O";
             checkResult();
-        } else if (!turn && !button.getText().matches("X|O")){
+        } else if (sign.equals("O") && !button.getText().matches("X|O")){
             button.setText("O");
-            turn = !turn;
+            sign = "X";
             checkResult();
         }
 
@@ -221,8 +269,8 @@ public class TicTacToe extends JFrame {
         buttonC2.setText(" ");
         buttonC3.setText(" ");
 
-        labelStatus.setText("Game is not started");
-        turn = true;
+        labelStatus.setText("Game in progress");
+        sign = "X";
         unfreezeGrid();
     }
 
@@ -248,5 +296,31 @@ public class TicTacToe extends JFrame {
         buttonC1.setEnabled(true);
         buttonC2.setEnabled(true);
         buttonC3.setEnabled(true);
+    }
+
+    public static void robotTurn() {
+
+        String[][] grid = {
+                {buttonA3.getText(), buttonB3.getText(), buttonC3.getText()},
+                {buttonA2.getText(), buttonB2.getText(), buttonC2.getText()},
+                {buttonA1.getText(), buttonB1.getText(), buttonC1.getText()},
+        };
+
+        ArrayList<JButton> list = new ArrayList<>() {{
+            if (buttonA3.getText().equals(" ")) add(buttonA3);
+            if (buttonA2.getText().equals(" "))add(buttonA2);
+            if (buttonA1.getText().equals(" "))add(buttonA1);
+            if (buttonB3.getText().equals(" "))add(buttonB3);
+            if (buttonB2.getText().equals(" "))add(buttonB2);
+            if (buttonB1.getText().equals(" "))add(buttonB1);
+            if (buttonC3.getText().equals(" "))add(buttonC3);
+            if (buttonC2.getText().equals(" ")) add(buttonC2);
+            if (buttonC1.getText().equals(" ")) add(buttonC1);
+        }};
+
+
+        Random rand = new Random();
+        list.get(rand.nextInt(list.size())).setText(sign);
+
     }
 }
