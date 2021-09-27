@@ -8,11 +8,10 @@ import java.util.Random;
 
 public class TicTacToe extends JFrame {
 
-    public static boolean gameStarted = false;
+    public static boolean game = false;
     public static String sign = "X";
-    public static boolean playerOneTurn = true;
+    public static int currentPlayerNum = 1;
     public static boolean humanTurn;
-    public static boolean gameFinished = false;
 
     public static JButton buttonPlayer1;
     public static JButton buttonStartReset;
@@ -59,30 +58,12 @@ public class TicTacToe extends JFrame {
 
             if (buttonStartReset.getText().equals("Start")) {
 
-                buttonStartReset.setText("Reset");
-                gameStarted = !gameStarted;
-                buttonPlayer1.setEnabled(false);
-                buttonPlayer2.setEnabled(false);
-                labelStatus.setText("Game in progress");
-
-                playerOneTurn = true;
-                unfreezeGrid();
-
-                if (buttonPlayer1.getText().equals("Robot") && buttonPlayer2.getText().equals("Robot")) {
-                    while (gameStarted) {
-                        robotTurn();
-                        playerOneTurn = !playerOneTurn;
-                    }
-                    return;
-                }
-
-                if (buttonPlayer1.getText().equals("Robot")) {
-                    robotTurn();
-                    playerOneTurn = false;
-                }
+                gameStart();
 
             } else {
+
                 resetGame();
+
             }
         });
 
@@ -195,6 +176,53 @@ public class TicTacToe extends JFrame {
 
         add(infoPanel, BorderLayout.SOUTH);
 
+        JMenuBar menuBar = new JMenuBar();
+        JMenu menuGame = new JMenu("Game");
+        menuGame.setName("MenuGame");
+
+        JMenuItem menuHumanHuman = new JMenuItem("Set Human vs Human");
+        menuHumanHuman.setName("MenuHumanHuman");
+        JMenuItem menuHumanRobot = new JMenuItem("Set Human vs Robot");
+        menuHumanRobot.setName("MenuHumanRobot");
+        JMenuItem menuRobotHuman = new JMenuItem("Set Robot vs Human");
+        menuRobotHuman.setName("MenuRobotHuman");
+        JMenuItem menuRobotRobot = new JMenuItem("Set Robot vs Robot");
+        menuRobotRobot.setName("MenuRobotRobot");
+        JMenuItem menuExit = new JMenuItem("Exit");
+        menuExit.setName("MenuExit");
+
+        menuHumanHuman.addActionListener(e -> {
+            buttonPlayer1.setText("Human");
+            buttonPlayer2.setText("Human");
+            gameStart();
+        });
+        menuHumanRobot.addActionListener(e -> {
+            buttonPlayer1.setText("Human");
+            buttonPlayer2.setText("Robot");
+            gameStart();
+        });
+        menuRobotHuman.addActionListener(e -> {
+            buttonPlayer1.setText("Robot");
+            buttonPlayer2.setText("Human");
+            gameStart();
+        });
+        menuRobotRobot.addActionListener(e -> {
+            buttonPlayer1.setText("Robot");
+            buttonPlayer2.setText("Robot");
+            gameStart();
+        });
+        menuExit.addActionListener(e -> dispose());
+
+        menuGame.add(menuHumanHuman);
+        menuGame.add(menuHumanRobot);
+        menuGame.add(menuRobotHuman);
+        menuGame.add(menuRobotRobot);
+        menuGame.addSeparator();
+        menuGame.add(menuExit);
+
+        menuBar.add(menuGame);
+        setJMenuBar(menuBar);
+
         freezeGrid();
         setVisible(true);
 
@@ -202,23 +230,49 @@ public class TicTacToe extends JFrame {
 
     public static void makeHumanTurn(JButton button) {
 
-        if (!gameStarted) return;
+        if (!button.getText().equals(" ")) return;
+
+        if (!game) return;
 
         if (sign.equals("X") && !button.getText().matches("X|O")) {
             button.setText("X");
-            sign = "O";
-            checkResult();
         } else if (sign.equals("O") && !button.getText().matches("X|O")) {
             button.setText("O");
+        }
+
+        checkResult();
+        if (!game) {
+            if (!labelStatus.getText().equals("Draw")) labelStatus.setText("The Human Player (" + sign + ") wins");
+            return;
+        }
+
+
+        if (sign.equals("X")) {
+            sign = "O";
+        } else if (sign.equals("O")) {
             sign = "X";
-            checkResult();
+        }
+
+
+        if (currentPlayerNum == 1) {
+            currentPlayerNum = 2;
+        } else {
+            currentPlayerNum = 1;
         }
 
         if (buttonPlayer1.getText().equals("Robot") || buttonPlayer2.getText().equals("Robot")) {
+            labelStatus.setText("The turn of Robot Player (" + sign + ")");
             robotTurn();
-            playerOneTurn = !playerOneTurn;
         }
 
+        if (!game) {
+
+            if (!labelStatus.getText().equals("Draw")) labelStatus.setText("The Robot Player (" + sign + ") wins");
+            return;
+
+        }
+
+        labelStatus.setText("The turn of Human Player (" + sign + ")");
     }
 
     public static void checkResult() {
@@ -261,27 +315,24 @@ public class TicTacToe extends JFrame {
         boolean draw = !xWins && !oWins && Arrays.stream(grid).flatMap(Arrays::stream).noneMatch(e -> e.equals(" "));
 
         if (xWins) {
-            labelStatus.setText("X wins");
-            gameStarted = false;
+            game = false;
             freezeGrid();
             return;
         }
 
         if (oWins) {
-            labelStatus.setText("O wins");
-            gameStarted = false;
+            game = false;
             freezeGrid();
             return;
         }
 
         if (draw) {
             labelStatus.setText("Draw");
-            gameStarted = false;
+            game = false;
             freezeGrid();
             return;
         }
 
-        labelStatus.setText("Game in progress");
 
     }
 
@@ -303,11 +354,12 @@ public class TicTacToe extends JFrame {
         buttonPlayer1.setEnabled(true);
         buttonPlayer2.setEnabled(true);
 
-        gameStarted = false;
+        game = false;
         humanTurn = false;
     }
 
     public static void freezeGrid() {
+
         buttonA1.setEnabled(false);
         buttonA2.setEnabled(false);
         buttonA3.setEnabled(false);
@@ -318,10 +370,10 @@ public class TicTacToe extends JFrame {
         buttonC2.setEnabled(false);
         buttonC3.setEnabled(false);
 
-
     }
 
     public static void unfreezeGrid() {
+
         buttonA1.setEnabled(true);
         buttonA2.setEnabled(true);
         buttonA3.setEnabled(true);
@@ -331,6 +383,7 @@ public class TicTacToe extends JFrame {
         buttonC1.setEnabled(true);
         buttonC2.setEnabled(true);
         buttonC3.setEnabled(true);
+
     }
 
     public static void robotTurn() {
@@ -357,14 +410,50 @@ public class TicTacToe extends JFrame {
         Random rand = new Random();
         list.get(rand.nextInt(list.size())).setText(sign);
 
+        checkResult();
+        if (!game) return;
+
         if (sign.equals("X")) {
             sign = "O";
-            checkResult();
         } else if (sign.equals("O")) {
             sign = "X";
-            checkResult();
         }
 
+
+    }
+
+    public static void gameStart() {
+
+        resetGame();
+
+        buttonStartReset.setText("Reset");
+        game = !game;
+        buttonPlayer1.setEnabled(false);
+        buttonPlayer2.setEnabled(false);
+
+        currentPlayerNum = 1;
+        unfreezeGrid();
+
+        if (buttonPlayer1.getText().equals("Robot") && buttonPlayer2.getText().equals("Robot")) {
+            while (game) {
+                labelStatus.setText("The turn of Robot Player (" + sign + ")");
+                robotTurn();
+            }
+            labelStatus.setText("The Robot Player (" + sign + ") wins");
+            return;
+        }
+
+        if (buttonPlayer1.getText().equals("Robot")) {
+            labelStatus.setText("The turn of Robot Player (" + sign + ")");
+            robotTurn();
+            currentPlayerNum = 2;
+            labelStatus.setText("The turn of Human Player (" + sign + ")");
+            return;
+        }
+
+        if (buttonPlayer1.getText().equals("Human")) {
+            labelStatus.setText("The turn of Human Player (" + sign + ")");
+        }
 
     }
 
