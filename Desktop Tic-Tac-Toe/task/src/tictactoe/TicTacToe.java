@@ -10,8 +10,10 @@ public class TicTacToe extends JFrame {
 
     public static boolean gameStarted = false;
     public static String sign = "X";
-//    public static boolean playerOneIsHuman = true;
-//    public static boolean playerTwoIsHuman = true;
+    public static boolean playerOneTurn = true;
+    public static boolean humanTurn;
+    public static boolean gameFinished = false;
+
     public static JButton buttonPlayer1;
     public static JButton buttonStartReset;
     public static JButton buttonPlayer2;
@@ -44,22 +46,41 @@ public class TicTacToe extends JFrame {
         topPanel.add(buttonPlayer1);
         buttonPlayer1.addActionListener(e -> {
             if (buttonPlayer1.getText().equals("Human")) {
-                buttonPlayer1.setText("Computer");
-            } else {
                 buttonPlayer1.setText("Robot");
+            } else if (buttonPlayer1.getText().equals("Robot")) {
+                buttonPlayer1.setText("Human");
             }
         });
 
-        buttonStartReset  = new JButton("Start");
+        buttonStartReset = new JButton("Start");
         buttonStartReset.setName("ButtonStartReset");
         topPanel.add(buttonStartReset);
         buttonStartReset.addActionListener(e -> {
+
             if (buttonStartReset.getText().equals("Start")) {
+
                 buttonStartReset.setText("Reset");
                 gameStarted = !gameStarted;
                 buttonPlayer1.setEnabled(false);
                 buttonPlayer2.setEnabled(false);
                 labelStatus.setText("Game in progress");
+
+                playerOneTurn = true;
+                unfreezeGrid();
+
+                if (buttonPlayer1.getText().equals("Robot") && buttonPlayer2.getText().equals("Robot")) {
+                    while (gameStarted) {
+                        robotTurn();
+                        playerOneTurn = !playerOneTurn;
+                    }
+                    return;
+                }
+
+                if (buttonPlayer1.getText().equals("Robot")) {
+                    robotTurn();
+                    playerOneTurn = false;
+                }
+
             } else {
                 resetGame();
             }
@@ -70,9 +91,9 @@ public class TicTacToe extends JFrame {
         topPanel.add(buttonPlayer2);
         buttonPlayer2.addActionListener(e -> {
             if (buttonPlayer2.getText().equals("Human")) {
-                buttonPlayer2.setText("Computer");
-            } else {
                 buttonPlayer2.setText("Robot");
+            } else if (buttonPlayer2.getText().equals("Robot")) {
+                buttonPlayer2.setText("Human");
             }
         });
 
@@ -89,7 +110,7 @@ public class TicTacToe extends JFrame {
         buttonA3.setFocusPainted(false);
         grid.add(buttonA3);
         buttonA3.addActionListener(e -> {
-           makeTurn(buttonA3);
+            makeHumanTurn(buttonA3);
         });
 
         buttonB3 = new JButton(" ");
@@ -98,7 +119,7 @@ public class TicTacToe extends JFrame {
         buttonB3.setFocusPainted(false);
         grid.add(buttonB3);
         buttonB3.addActionListener(e -> {
-            makeTurn(buttonB3);
+            makeHumanTurn(buttonB3);
         });
 
         buttonC3 = new JButton(" ");
@@ -107,7 +128,7 @@ public class TicTacToe extends JFrame {
         buttonC3.setFocusPainted(false);
         grid.add(buttonC3);
         buttonC3.addActionListener(e -> {
-            makeTurn(buttonC3);
+            makeHumanTurn(buttonC3);
         });
 
         buttonA2 = new JButton(" ");
@@ -116,7 +137,7 @@ public class TicTacToe extends JFrame {
         buttonA2.setFocusPainted(false);
         grid.add(buttonA2);
         buttonA2.addActionListener(e -> {
-            makeTurn(buttonA2);
+            makeHumanTurn(buttonA2);
         });
 
         buttonB2 = new JButton(" ");
@@ -125,7 +146,7 @@ public class TicTacToe extends JFrame {
         buttonB2.setFocusPainted(false);
         grid.add(buttonB2);
         buttonB2.addActionListener(e -> {
-            makeTurn(buttonB2);
+            makeHumanTurn(buttonB2);
         });
 
         buttonC2 = new JButton(" ");
@@ -134,7 +155,7 @@ public class TicTacToe extends JFrame {
         buttonC2.setFocusPainted(false);
         grid.add(buttonC2);
         buttonC2.addActionListener(e -> {
-            makeTurn(buttonC2);
+            makeHumanTurn(buttonC2);
         });
 
         buttonA1 = new JButton(" ");
@@ -143,7 +164,7 @@ public class TicTacToe extends JFrame {
         buttonA1.setFocusPainted(false);
         grid.add(buttonA1);
         buttonA1.addActionListener(e -> {
-            makeTurn(buttonA1);
+            makeHumanTurn(buttonA1);
         });
 
         buttonB1 = new JButton(" ");
@@ -152,7 +173,7 @@ public class TicTacToe extends JFrame {
         buttonB1.setFocusPainted(false);
         grid.add(buttonB1);
         buttonB1.addActionListener(e -> {
-            makeTurn(buttonB1);
+            makeHumanTurn(buttonB1);
         });
 
         buttonC1 = new JButton(" ");
@@ -161,7 +182,7 @@ public class TicTacToe extends JFrame {
         buttonC1.setFocusPainted(false);
         grid.add(buttonC1);
         buttonC1.addActionListener(e -> {
-            makeTurn(buttonC1);
+            makeHumanTurn(buttonC1);
         });
 
         add(grid);
@@ -174,12 +195,12 @@ public class TicTacToe extends JFrame {
 
         add(infoPanel, BorderLayout.SOUTH);
 
+        freezeGrid();
         setVisible(true);
-
 
     }
 
-    public static void makeTurn(JButton button) {
+    public static void makeHumanTurn(JButton button) {
 
         if (!gameStarted) return;
 
@@ -187,18 +208,21 @@ public class TicTacToe extends JFrame {
             button.setText("X");
             sign = "O";
             checkResult();
-        } else if (sign.equals("O") && !button.getText().matches("X|O")){
+        } else if (sign.equals("O") && !button.getText().matches("X|O")) {
             button.setText("O");
             sign = "X";
             checkResult();
         }
 
-
+        if (buttonPlayer1.getText().equals("Robot") || buttonPlayer2.getText().equals("Robot")) {
+            robotTurn();
+            playerOneTurn = !playerOneTurn;
+        }
 
     }
 
     public static void checkResult() {
-        
+
         String[][] grid =
 
                 {
@@ -209,7 +233,7 @@ public class TicTacToe extends JFrame {
 
         boolean xWins =
 
-                        ("X".equals(grid[0][0]) && "X".equals(grid[0][1]) && "X".equals(grid[0][2])) ||
+                ("X".equals(grid[0][0]) && "X".equals(grid[0][1]) && "X".equals(grid[0][2])) ||
                         ("X".equals(grid[1][0]) && "X".equals(grid[1][1]) && "X".equals(grid[1][2])) ||
                         ("X".equals(grid[2][0]) && "X".equals(grid[2][1]) && "X".equals(grid[2][2])) ||
 
@@ -223,7 +247,7 @@ public class TicTacToe extends JFrame {
 
         boolean oWins =
 
-                        ("O".equals(grid[0][0]) && "O".equals(grid[0][1]) && "O".equals(grid[0][2])) ||
+                ("O".equals(grid[0][0]) && "O".equals(grid[0][1]) && "O".equals(grid[0][2])) ||
                         ("O".equals(grid[1][0]) && "O".equals(grid[1][1]) && "O".equals(grid[1][2])) ||
                         ("O".equals(grid[2][0]) && "O".equals(grid[2][1]) && "O".equals(grid[2][2])) ||
 
@@ -238,18 +262,21 @@ public class TicTacToe extends JFrame {
 
         if (xWins) {
             labelStatus.setText("X wins");
+            gameStarted = false;
             freezeGrid();
             return;
         }
 
         if (oWins) {
             labelStatus.setText("O wins");
+            gameStarted = false;
             freezeGrid();
             return;
         }
 
         if (draw) {
             labelStatus.setText("Draw");
+            gameStarted = false;
             freezeGrid();
             return;
         }
@@ -259,6 +286,7 @@ public class TicTacToe extends JFrame {
     }
 
     public static void resetGame() {
+
         buttonA1.setText(" ");
         buttonA2.setText(" ");
         buttonA3.setText(" ");
@@ -269,9 +297,14 @@ public class TicTacToe extends JFrame {
         buttonC2.setText(" ");
         buttonC3.setText(" ");
 
-        labelStatus.setText("Game in progress");
+        labelStatus.setText("Game is not started");
         sign = "X";
-        unfreezeGrid();
+        buttonStartReset.setText("Start");
+        buttonPlayer1.setEnabled(true);
+        buttonPlayer2.setEnabled(true);
+
+        gameStarted = false;
+        humanTurn = false;
     }
 
     public static void freezeGrid() {
@@ -284,6 +317,8 @@ public class TicTacToe extends JFrame {
         buttonC1.setEnabled(false);
         buttonC2.setEnabled(false);
         buttonC3.setEnabled(false);
+
+
     }
 
     public static void unfreezeGrid() {
@@ -308,12 +343,12 @@ public class TicTacToe extends JFrame {
 
         ArrayList<JButton> list = new ArrayList<>() {{
             if (buttonA3.getText().equals(" ")) add(buttonA3);
-            if (buttonA2.getText().equals(" "))add(buttonA2);
-            if (buttonA1.getText().equals(" "))add(buttonA1);
-            if (buttonB3.getText().equals(" "))add(buttonB3);
-            if (buttonB2.getText().equals(" "))add(buttonB2);
-            if (buttonB1.getText().equals(" "))add(buttonB1);
-            if (buttonC3.getText().equals(" "))add(buttonC3);
+            if (buttonA2.getText().equals(" ")) add(buttonA2);
+            if (buttonA1.getText().equals(" ")) add(buttonA1);
+            if (buttonB3.getText().equals(" ")) add(buttonB3);
+            if (buttonB2.getText().equals(" ")) add(buttonB2);
+            if (buttonB1.getText().equals(" ")) add(buttonB1);
+            if (buttonC3.getText().equals(" ")) add(buttonC3);
             if (buttonC2.getText().equals(" ")) add(buttonC2);
             if (buttonC1.getText().equals(" ")) add(buttonC1);
         }};
@@ -322,5 +357,16 @@ public class TicTacToe extends JFrame {
         Random rand = new Random();
         list.get(rand.nextInt(list.size())).setText(sign);
 
+        if (sign.equals("X")) {
+            sign = "O";
+            checkResult();
+        } else if (sign.equals("O")) {
+            sign = "X";
+            checkResult();
+        }
+
+
     }
+
+
 }
